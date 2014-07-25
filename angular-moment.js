@@ -232,6 +232,115 @@
 				};
 			}])
 
+    /**
+     * @ngdoc directive
+     * @name angularMoment.directive:amPreciseRange
+     * @module angularMoment
+     *
+     * @restrict A
+     */
+      .directive('amPreciseRange', ['$timeout', 'moment', 'amMoment', 'angularMomentConfig', function ($timeout, moment, amMoment, angularMomentConfig) {
+
+        return function (scope, element, attr) {
+          var activeTimeout = null;
+          var currentValue;
+          var currentFormat = angularMomentConfig.format;
+          var preprocess = angularMomentConfig.preprocess;
+          var modelName = attr.amPreciseRange.replace(/^::/, '');
+          var isBindOnce = (attr.amPreciseRange.indexOf('::') === 0);
+          var isTimeElement = ('TIME' === element[0].nodeName.toUpperCase());
+          var unwatchChanges;
+
+          function getNow() {
+            var now;
+            now = moment();
+            return now;
+          }
+
+          function cancelTimer() {
+            if (activeTimeout) {
+              $timeout.cancel(activeTimeout);
+              activeTimeout = null;
+            }
+          }
+
+          function updateTime(momentInstance) {
+            // TODO: replace with preciseRange call here
+            element.text('PR ' + momentInstance.format('MM/DD/YYYY'));
+            if (!isBindOnce) {
+
+              var howOld = getNow().diff(momentInstance, 'minute');
+              var secondsUntilUpdate = 3600;
+              if (howOld < 1) {
+                secondsUntilUpdate = 1;
+              } else if (howOld < 60) {
+                secondsUntilUpdate = 30;
+              } else if (howOld < 180) {
+                secondsUntilUpdate = 300;
+              }
+
+              activeTimeout = $timeout(function () {
+                updateTime(momentInstance);
+              }, secondsUntilUpdate * 1000);
+            }
+          }
+
+          function updateDateTimeAttr(value) {
+            if (isTimeElement) {
+              element.attr('datetime', value);
+            }
+          }
+
+          function updateMoment() {
+            cancelTimer();
+            if (currentValue) {
+              var momentValue = amMoment.preprocessDate(currentValue, preprocess, currentFormat);
+              updateTime(momentValue);
+              updateDateTimeAttr(momentValue.toISOString());
+            }
+          }
+
+          unwatchChanges = scope.$watch(modelName, function (value) {
+            if ((typeof value === 'undefined') || (value === null) || (value === '')) {
+              cancelTimer();
+              if (currentValue) {
+                element.text('');
+                updateDateTimeAttr('');
+                currentValue = null;
+              }
+              return;
+            }
+
+            currentValue = value;
+            updateMoment();
+
+            if (value !== undefined && isBindOnce) {
+              unwatchChanges();
+            }
+          });
+
+          attr.$observe('amFormat', function (format) {
+            if (typeof format !== 'undefined') {
+              currentFormat = format;
+              updateMoment();
+            }
+          });
+
+          attr.$observe('amPreprocess', function (newValue) {
+            preprocess = newValue;
+            updateMoment();
+          });
+
+          scope.$on('$destroy', function () {
+            cancelTimer();
+          });
+
+          scope.$on('amMoment:languageChange', function () {
+            updateMoment();
+          });
+        };
+      }])
+
 		/**
 		 * @ngdoc service
 		 * @name angularMoment.service.amMoment
