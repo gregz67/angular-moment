@@ -5,7 +5,10 @@
 	"author": "Uri Shaked",
 	"license": "MIT",
 	"homepage": "http://github.com/urish/angular-moment",
-	"main": "./angular-moment.js",
+	"main": [
+    "./angular-moment.js",
+    "./readable-range.js"
+  ],
 	"ignore": [
 	],
 	"dependencies": {

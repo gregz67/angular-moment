@@ -251,12 +251,6 @@
           var isTimeElement = ('TIME' === element[0].nodeName.toUpperCase());
           var unwatchChanges;
 
-          function getNow() {
-            var now;
-            now = moment();
-            return now;
-          }
-
           function cancelTimer() {
             if (activeTimeout) {
               $timeout.cancel(activeTimeout);
@@ -265,11 +259,10 @@
           }
 
           function updateTime(momentInstance) {
-            // TODO: replace with preciseRange call here
-            element.text('PR ' + momentInstance.format('MM/DD/YYYY'));
+            element.text(moment.preciseDiff(momentInstance));
             if (!isBindOnce) {
 
-              var howOld = getNow().diff(momentInstance, 'minute');
+              var howOld = moment().diff(momentInstance, 'minute');
               var secondsUntilUpdate = 3600;
               if (howOld < 1) {
                 secondsUntilUpdate = 1;
