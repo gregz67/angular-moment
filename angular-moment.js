@@ -239,7 +239,7 @@
      *
      * @restrict A
      */
-      .directive('amPreciseRange', ['$timeout', 'moment', 'amMoment', 'angularMomentConfig', function ($timeout, moment, amMoment, angularMomentConfig) {
+      .directive('amPreciseRange', ['$window', 'moment', 'amMoment', 'angularMomentConfig', function ($window, moment, amMoment, angularMomentConfig) {
 
         return function (scope, element, attr) {
           var activeTimeout = null;
@@ -253,7 +253,7 @@
 
           function cancelTimer() {
             if (activeTimeout) {
-              $timeout.cancel(activeTimeout);
+              $window.clearTimeout(activeTimeout);
               activeTimeout = null;
             }
           }
@@ -272,7 +272,7 @@
                 secondsUntilUpdate = 300;
               }
 
-              activeTimeout = $timeout(function () {
+              activeTimeout = $window.setTimeout(function () {
                 updateTime(momentInstance);
               }, secondsUntilUpdate * 1000);
             }
